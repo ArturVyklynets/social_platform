@@ -1,8 +1,17 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
+import axios from "axios"
 import { Heart, Users, Target, Shield, Globe, Award, Lightbulb, HandHeart, Mail, MapPin, Phone } from "lucide-react"
 import toast from "react-hot-toast"
 
+const API = "http://localhost:8000"
+
 export default function AboutPage({ onGetStarted }) {
+  const [platformStats, setPlatformStats] = useState(null)
+
+  useEffect(() => {
+    axios.get(`${API}/api/requests/platform-stats`).then((r) => setPlatformStats(r.data)).catch(() => {})
+  }, [])
+
   const values = [
     {
       icon: Heart,
@@ -24,12 +33,6 @@ export default function AboutPage({ onGetStarted }) {
       title: "Інновації",
       description: "Ми постійно вдосконалюємо платформу, щоб надавати та отримувати допомогу було простіше.",
     },
-  ]
-
-  const milestones = [
-    { year: "2024", event: "Концепція KindLink розроблена для вирішення потреб місцевих громад." },
-    { year: "2025", event: "Архітектура платформи та основні функції спроектовані та побудовані." },
-    { year: "2026", event: "Офіційний запуск платформи KindLink, що об'єднує тисячі людей." },
   ]
 
   return (
@@ -81,8 +84,10 @@ export default function AboutPage({ onGetStarted }) {
                     <Users className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">150K+</p>
-                    <p className="text-sm text-gray-500 font-medium">Активних учасників</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {platformStats ? platformStats.total_users.toLocaleString("uk-UA") : "…"}
+                    </p>
+                    <p className="text-sm text-gray-500 font-medium">Учасників</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-6 py-4 border border-gray-100">
@@ -90,8 +95,10 @@ export default function AboutPage({ onGetStarted }) {
                     <Award className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">50K+</p>
-                    <p className="text-sm text-gray-500 font-medium">Виконаних запитів</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {platformStats ? platformStats.requests_count.toLocaleString("uk-UA") : "…"}
+                    </p>
+                    <p className="text-sm text-gray-500 font-medium">Запитів розміщено</p>
                   </div>
                 </div>
               </div>
@@ -111,8 +118,12 @@ export default function AboutPage({ onGetStarted }) {
                     <Heart className="h-7 w-7 fill-current" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 font-medium">Загальний вплив</p>
-                    <p className="text-2xl font-extrabold text-gray-900">₴350М+</p>
+                    <p className="text-sm text-gray-500 font-medium">Зібрано коштів</p>
+                    <p className="text-2xl font-extrabold text-gray-900">
+                      {platformStats
+                        ? `₴${platformStats.collected_uah.toLocaleString("uk-UA", { maximumFractionDigits: 0 })}`
+                        : "…"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -147,43 +158,8 @@ export default function AboutPage({ onGetStarted }) {
         </div>
       </section>
 
-      
-      <section className="px-4 py-24 sm:px-6 lg:px-8 bg-white">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-balance text-3xl font-bold text-gray-900 sm:text-4xl">
-              Наш шлях
-            </h2>
-            <p className="text-pretty text-lg text-gray-500">
-              Від маленької ідеї до процвітаючої платформи для громади.
-            </p>
-          </div>
 
-          <div className="relative">
-            <div className="absolute left-4 top-0 h-full w-0.5 bg-indigo-100 sm:left-1/2 sm:-ml-px" />
-            <div className="space-y-12">
-              {milestones.map((milestone, index) => (
-                <div key={index} className={`relative flex items-center gap-4 sm:gap-8 ${index % 2 === 0 ? "sm:flex-row-reverse" : ""}`}>
-                  <div className="flex-1 sm:w-1/2" />
-                  <div className="absolute left-4 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white bg-indigo-600 text-xs font-bold text-white shadow-sm sm:relative sm:left-auto z-10">
-                    {index + 1}
-                  </div>
-                  <div className="ml-12 flex-1 sm:ml-0 sm:w-1/2">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition">
-                      <span className="text-sm font-bold text-indigo-600 uppercase tracking-wider">
-                        {milestone.year}
-                      </span>
-                      <p className="mt-2 text-lg font-medium text-gray-900">{milestone.event}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
-      
       <section className="bg-gray-50 px-4 py-24 sm:px-6 lg:px-8 border-t border-gray-200">
         <div className="mx-auto max-w-7xl">
           <div className="grid items-center gap-16 lg:grid-cols-2">

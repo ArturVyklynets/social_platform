@@ -4,6 +4,7 @@ import toast from "react-hot-toast"
 import { Users, ClipboardList, Trash2, ShieldCheck, Search, ShieldBan, MessageSquare, CheckCircle, Send } from "lucide-react"
 import AdminUserProfileModal from "./AdminUserProfileModal"
 import AdminRequestDetailModal from "./AdminRequestDetailModal"
+import { parseUTC } from "../utils"
 
 const API = "http://localhost:8000"
 
@@ -358,7 +359,7 @@ function TicketItem({ t, expanded, onToggle, actingExternal, onResolve, onDelete
           <p className="mt-0.5 text-xs text-gray-400">
             {t.user?.full_name || t.user?.email}
             {" · "}
-            {t.created_at ? new Date(t.created_at).toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+            {t.created_at ? parseUTC(t.created_at).toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: "short" }) : "—"}
           </p>
         </div>
       </button>
@@ -395,7 +396,7 @@ function TicketItem({ t, expanded, onToggle, actingExternal, onResolve, onDelete
                       <p className={`mt-1 text-xs ${isAdmin ? "text-indigo-200" : "text-gray-400"}`}>
                         {m.sender_name || m.sender_email}
                         {" · "}
-                        {new Date(m.created_at).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" })}
+                        {parseUTC(m.created_at).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" })}
                       </p>
                     </div>
                   </div>

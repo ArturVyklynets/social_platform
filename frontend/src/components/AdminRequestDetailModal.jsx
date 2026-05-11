@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import axios from "axios"
 import toast from "react-hot-toast"
-import { X, Tag, User, CreditCard, Heart, Banknote, CheckCircle } from "lucide-react"
+import { X, Tag, User, CreditCard, Heart, Banknote, CheckCircle, Camera, ImageIcon } from "lucide-react"
+import { parseUTC } from "../utils"
 
 const API = "http://localhost:8000"
 
@@ -26,7 +27,18 @@ const STATUS_CLS   = {
 }
 
 export default function AdminRequestDetailModal({ request, onClose, onPayout }) {
-  const [paying, setPaying] = useState(false)
+  const [paying, setPaying]   = useState(false)
+  const [report, setReport]   = useState(null)
+
+  useEffect(() => {
+    if (!request) return
+    setReport(null)
+    const token = localStorage.getItem("token")
+    axios
+      .get(`${API}/api/reports/${request.id}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => setReport(r.data))
+      .catch(() => {})
+  }, [request?.id])
 
   if (!request) return null
 
@@ -74,7 +86,7 @@ export default function AdminRequestDetailModal({ request, onClose, onPayout }) 
         {request.image_url ? (
           <div className="overflow-hidden rounded-t-3xl">
             <img
-              src={`${API}${request.image_url}`}
+              src={request.image_url.startsWith("/") ? `${API}${request.image_url}` : request.image_url}
               alt={request.title}
               className="h-48 w-full object-cover"
             />
@@ -174,7 +186,37 @@ export default function AdminRequestDetailModal({ request, onClose, onPayout }) 
             </div>
           )}
 
-          
+          {/* Volunteer photo report */}
+          <div className="mb-5 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+            <div className="flex items-center gap-2 px-4 py-3">
+              <Camera className="h-4 w-4 text-gray-400" />
+              <p className="text-sm font-semibold text-gray-700">Фото-звіт волонтера</p>
+            </div>
+            {report ? (
+              <div>
+                {report.photo_url && (
+                  <img
+                    src={report.photo_url}
+                    alt="Фото звіту"
+                    className="max-h-60 w-full cursor-zoom-in object-cover"
+                    onClick={() => window.open(report.photo_url, "_blank")}
+                  />
+                )}
+                {report.comment && (
+                  <p className="px-4 py-3 text-sm leading-relaxed text-gray-700">{report.comment}</p>
+                )}
+                <p className="px-4 pb-3 text-xs text-gray-400">
+                  {parseUTC(report.created_at).toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: "short" })}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-4 pb-4 text-sm text-gray-400">
+                <ImageIcon className="h-4 w-4 shrink-0" />
+                Звіт ще не надіслано.
+              </div>
+            )}
+          </div>
+
           {raised > 0 && request.card_number && (
             isPaid ? (
               <div className="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
@@ -185,7 +227,7 @@ export default function AdminRequestDetailModal({ request, onClose, onPayout }) 
                   </p>
                   {request.payout_at && (
                     <p className="text-xs text-green-500">
-                      {new Date(request.payout_at).toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: "short" })}
+                      {parseUTC(request.payout_at).toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: "short" })}
                     </p>
                   )}
                 </div>

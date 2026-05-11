@@ -82,7 +82,9 @@ export default function AdminUserProfileModal({ userId, onClose, onRoleChanged }
 
   if (!userId) return null
 
-  const avatarSrc = user?.avatar_url ? `${API}${user.avatar_url}` : null
+  const avatarSrc = user?.avatar_url
+    ? (user.avatar_url.startsWith("/") ? `${API}${user.avatar_url}` : user.avatar_url)
+    : null
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">

@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime
 
 import stripe
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session, joinedload
 
 import models
 from dependencies import get_current_user, get_db
+
+log = logging.getLogger(__name__)
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
@@ -83,32 +86,40 @@ async def stripe_webhook(
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-    except stripe.errors.SignatureVerificationError:
+    except stripe.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid Stripe webhook signature.")
     except Exception:
         raise HTTPException(status_code=400, detail="Malformed webhook payload.")
 
-    if event["type"] == "checkout.session.completed":
-        session    = event["data"]["object"]
-        request_id = int(session["metadata"]["request_id"])
-        user_id    = int(session["metadata"].get("user_id", 0))
-        amount_uah = round(session["amount_total"] / 100, 2)
+    if event.type == "checkout.session.completed":
+        try:
+            session    = event.data.object
+            raw_meta   = session.metadata._data if session.metadata else {}
+            request_id = int(raw_meta.get("request_id", 0))
+            user_id    = int(raw_meta.get("user_id", 0))
+            amount_uah = round((session.amount_total or 0) / 100, 2)
 
-        req = db.query(models.HelpRequest).filter(models.HelpRequest.id == request_id).first()
-        if req:
-            req.collected_amount = round((req.collected_amount or 0.0) + amount_uah, 2)
+            if not request_id or amount_uah <= 0:
+                return {"status": "ok"}
 
-            if user_id:
-                db.add(models.DonationTx(
-                    donor_id=user_id,
-                    request_id=request_id,
-                    amount=amount_uah,
-                    stripe_session_id=session["id"],
-                    status="success",
-                    created_at=datetime.utcnow(),
-                ))
+            req = db.query(models.HelpRequest).filter(models.HelpRequest.id == request_id).first()
+            if req:
+                req.collected_amount = round((req.collected_amount or 0.0) + amount_uah, 2)
 
-            db.commit()
+                if user_id:
+                    db.add(models.DonationTx(
+                        donor_id=user_id,
+                        request_id=request_id,
+                        amount=amount_uah,
+                        stripe_session_id=session.id,
+                        status="success",
+                        created_at=datetime.utcnow(),
+                    ))
+
+                db.commit()
+        except Exception as exc:
+            db.rollback()
+            log.error("checkout.session.completed processing failed: %s", exc, exc_info=True)
 
     return {"status": "ok"}
 
@@ -130,11 +141,12 @@ def get_my_donations(
     )
     return [
         {
-            "id":            d.id,
-            "amount":        float(d.amount),
-            "request_id":    d.request_id,
-            "request_title": d.help_request.title if d.help_request else "—",
-            "created_at":    d.created_at.isoformat() if d.created_at else None,
+            "id":             d.id,
+            "amount":         float(d.amount),
+            "request_id":     d.request_id,
+            "request_title":  d.help_request.title  if d.help_request else "—",
+            "request_status": d.help_request.status if d.help_request else None,
+            "created_at":     d.created_at.isoformat() if d.created_at else None,
         }
         for d in donations
     ]

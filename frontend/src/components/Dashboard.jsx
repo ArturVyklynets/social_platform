@@ -39,8 +39,9 @@ export default function Dashboard({ currentUser }) {
   }, [])
 
   const filteredRequests = requests.filter((req) =>
-    req.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    req.description.toLowerCase().includes(searchQuery.toLowerCase())
+    req.status !== "completed" &&
+    (req.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     req.description.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   return (
@@ -105,7 +106,7 @@ export default function Dashboard({ currentUser }) {
                   {request.image_url ? (
                     <div className="mx-4 mt-4 overflow-hidden rounded-xl">
                       <img
-                        src={`http://localhost:8000${request.image_url}`}
+                        src={request.image_url.startsWith("/") ? `http://localhost:8000${request.image_url}` : request.image_url}
                         alt={request.title}
                         className="aspect-video w-full object-cover"
                       />
@@ -124,21 +125,17 @@ export default function Dashboard({ currentUser }) {
                       {request.description}
                     </p>
 
-                    <div className="mt-4">
-                      {goal > 0 ? (
-                        <>
-                          <div className="mb-1.5 flex items-baseline justify-between">
-                            <span className="text-sm font-semibold text-gray-900">₴{raised.toLocaleString()} зібрано</span>
-                            <span className="text-xs text-gray-500">з ₴{goal.toLocaleString()}</span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                            <div className="h-full rounded-full bg-indigo-600" style={{ width: `${pct}%` }} />
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-xs text-gray-400">Фінансова мета не вказана</p>
-                      )}
-                    </div>
+                    {goal > 0 && (
+                      <div className="mt-4">
+                        <div className="mb-1.5 flex items-baseline justify-between">
+                          <span className="text-sm font-semibold text-gray-900">₴{raised.toLocaleString()} зібрано</span>
+                          <span className="text-xs text-gray-500">з ₴{goal.toLocaleString()}</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full rounded-full bg-indigo-600" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="border-t border-gray-100 p-4">

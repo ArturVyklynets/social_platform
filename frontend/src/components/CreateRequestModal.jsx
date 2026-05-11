@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import toast from "react-hot-toast"
 import {
-  X, FileText, Tag, DollarSign, AlignLeft, ChevronDown,
+  X, FileText, Tag, AlignLeft, ChevronDown,
   HeartHandshake, Zap, Stethoscope, Home, ShoppingBasket,
-  GraduationCap, ImagePlus, CreditCard,
+  GraduationCap, ImagePlus, CreditCard, CalendarDays,
 } from "lucide-react"
 
 const categoryOptions = [
@@ -15,7 +15,12 @@ const categoryOptions = [
   { value: "education", label: "Освіта",     description: "Навчання та навички",         icon: GraduationCap },
 ]
 
-const INITIAL_FORM = { title: "", category: "", goalAmount: "", description: "", cardNumber: "" }
+const INITIAL_FORM = {
+  title: "", category: "", goalAmount: "", description: "", cardNumber: "",
+  hasSchedule: false, dateFrom: "", dateTo: "", hasTimeRange: false, hourFrom: "9", hourTo: "18",
+}
+
+const TODAY = new Date().toISOString().split("T")[0]
 
 export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm]                   = useState(INITIAL_FORM)
@@ -82,6 +87,10 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
           category: form.category,
           goal_amount: form.goalAmount ? parseFloat(form.goalAmount) : null,
           card_number: form.cardNumber || null,
+          available_from:      form.hasSchedule && form.dateFrom ? form.dateFrom : null,
+          available_to:        form.hasSchedule && form.dateTo   ? form.dateTo   : (form.hasSchedule && form.dateFrom ? form.dateFrom : null),
+          available_hour_from: form.hasSchedule && form.hasTimeRange ? parseInt(form.hourFrom) : null,
+          available_hour_to:   form.hasSchedule && form.hasTimeRange ? parseInt(form.hourTo)   : null,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -223,7 +232,7 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
                 Фінансова мета <span className="text-gray-400 font-normal">(необов'язково)</span>
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400">₴</span>
                 <input
                   type="number"
                   value={form.goalAmount}
@@ -232,7 +241,7 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
                   min="1"
                   max="999999"
                   step="0.01"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-8 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600"
                 />
               </div>
             </div>
@@ -281,7 +290,101 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
               </div>
             </div>
 
-            
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                Коли потрібна допомога{" "}
+                <span className="font-normal text-gray-400">(необов'язково)</span>
+              </label>
+
+              {!form.hasSchedule ? (
+                <button
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, hasSchedule: true }))}
+                  className="flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Додати часовий проміжок
+                </button>
+              ) : (
+                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Часовий проміжок</span>
+                    <button
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, hasSchedule: false, dateFrom: "", dateTo: "", hasTimeRange: false }))}
+                      className="rounded-full p-1 text-gray-400 hover:bg-white hover:text-gray-600"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">З дати</label>
+                      <input
+                        type="date"
+                        value={form.dateFrom}
+                        min={TODAY}
+                        onChange={e => setForm(p => ({ ...p, dateFrom: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">По дату <span className="font-normal text-gray-400">(якщо діапазон)</span></label>
+                      <input
+                        type="date"
+                        value={form.dateTo}
+                        min={form.dateFrom || TODAY}
+                        onChange={e => setForm(p => ({ ...p, dateTo: e.target.value }))}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={form.hasTimeRange}
+                      onChange={e => setForm(p => ({ ...p, hasTimeRange: e.target.checked }))}
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    Вказати конкретний годинний діапазон
+                  </label>
+
+                  {form.hasTimeRange && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-600">Від години</label>
+                        <select
+                          value={form.hourFrom}
+                          onChange={e => setForm(p => ({ ...p, hourFrom: e.target.value }))}
+                          className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                        >
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-600">До години</label>
+                        <select
+                          value={form.hourTo}
+                          onChange={e => setForm(p => ({ ...p, hourTo: e.target.value }))}
+                          className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                        >
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-900">
                 Фото <span className="text-gray-400 font-normal">(необов'язково)</span>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import AuthModals from './components/AuthModals';
@@ -44,6 +44,19 @@ export default function App() {
     const urlToken = new URLSearchParams(window.location.search).get('token');
     if (urlToken) {
       localStorage.setItem('token', urlToken);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  // Show payment result toast after Stripe redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'success') {
+      toast.success('Оплату успішно проведено! Дякуємо за підтримку.');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (payment === 'cancel') {
+      toast.error('Оплату скасовано.');
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);

@@ -30,6 +30,10 @@ class HelpRequestBase(BaseModel):
     goal_amount: Optional[float] = None
     image_url: Optional[str] = None
     card_number: Optional[str] = None
+    available_from: Optional[str] = None
+    available_to: Optional[str] = None
+    available_hour_from: Optional[int] = None
+    available_hour_to: Optional[int] = None
 
 class HelpRequestCreate(HelpRequestBase):
     pass
@@ -114,9 +118,36 @@ class IncomingApplicationResponse(BaseModel):
     request_title: str
     scheduled_at: datetime
     status: str
+    volunteer_id: int
     volunteer_email: str
     volunteer_name: Optional[str] = None
     volunteer_phone: Optional[str] = None
+
+
+class ReviewCreate(BaseModel):
+    rating: int
+    comment: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    id: int
+    request_id: int
+    volunteer_id: int
+    author_id: int
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+    author_name: Optional[str] = None
+    request_title: Optional[str] = None
+
+
+class PublicUserResponse(BaseModel):
+    id: int
+    role: str
+    avatar_url: Optional[str] = None
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    average_rating: Optional[float] = None
+    reviews_count: int = 0
 
 class MyApplicationResponse(BaseModel):
     id: int
@@ -126,6 +157,20 @@ class MyApplicationResponse(BaseModel):
     scheduled_at: datetime
     status: str
     created_at: datetime
+    has_report: bool = False
+
+
+class ReportResponse(BaseModel):
+    id: int
+    application_id: int
+    volunteer_id: int
+    request_id: int
+    photo_url: Optional[str] = None
+    comment: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class ForgotPasswordRequest(BaseModel):

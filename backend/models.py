@@ -54,6 +54,10 @@ class HelpRequest(Base):
     status = Column(String, default="open")
     payout_status = Column(String, default="unpaid")
     payout_at = Column(DateTime, nullable=True)
+    available_from      = Column(String, nullable=True)
+    available_to        = Column(String, nullable=True)
+    available_hour_from = Column(Integer, nullable=True)
+    available_hour_to   = Column(Integer, nullable=True)
 
     author = relationship("User", back_populates="requests")
     bookings = relationship("Booking", back_populates="help_request")
@@ -71,7 +75,6 @@ class Booking(Base):
 
     help_request = relationship("HelpRequest", back_populates="bookings")
     volunteer = relationship("User", back_populates="bookings")
-    report = relationship("Report", back_populates="booking", uselist=False)
 
 class DonationTx(Base):
     __tablename__ = "donation_tx"
@@ -90,13 +93,17 @@ class DonationTx(Base):
 class Report(Base):
     __tablename__ = "reports"
 
-    id = Column(Integer, primary_key=True, index=True)
-    booking_id = Column(Integer, ForeignKey("bookings.id"))
-    photo_url = Column(Text)
-    review = Column(Text)
-    rating = Column(Integer)
+    id             = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("request_volunteers.id", ondelete="CASCADE"), nullable=False, unique=True)
+    volunteer_id   = Column(Integer, ForeignKey("users.id"), nullable=False)
+    request_id     = Column(Integer, ForeignKey("help_requests.id", ondelete="CASCADE"), nullable=False)
+    photo_url      = Column(String, nullable=True)
+    comment        = Column(Text, nullable=True)
+    created_at     = Column(DateTime, default=datetime.utcnow)
 
-    booking = relationship("Booking", back_populates="report")
+    application  = relationship("RequestVolunteer", back_populates="report")
+    volunteer    = relationship("User", foreign_keys=[volunteer_id])
+    help_request = relationship("HelpRequest")
 
 
 class SupportTicket(Base):
@@ -140,3 +147,20 @@ class RequestVolunteer(Base):
 
     user = relationship("User", back_populates="volunteer_applications")
     help_request = relationship("HelpRequest", back_populates="volunteer_applications")
+    report = relationship("Report", back_populates="application", uselist=False)
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    request_id   = Column(Integer, ForeignKey("help_requests.id"), nullable=False)
+    volunteer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    author_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating       = Column(Integer, nullable=False)
+    comment      = Column(Text, nullable=True)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+
+    volunteer    = relationship("User", foreign_keys=[volunteer_id])
+    author       = relationship("User", foreign_keys=[author_id])
+    help_request = relationship("HelpRequest")

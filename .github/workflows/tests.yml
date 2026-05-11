@@ -1,0 +1,66 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
+
+jobs:
+  test:
+    name: pytest (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    # ── PostgreSQL service container ────────────────────────────────────────────
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_kindlink
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # ── Run all steps from the backend folder ───────────────────────────────────
+    defaults:
+      run:
+        working-directory: backend
+
+    # ── Environment variables available to every step ──────────────────────────
+    env:
+      TEST_DATABASE_URL:    postgresql://postgres:postgres@localhost:5432/test_kindlink
+      STRIPE_WEBHOOK_SECRET: whsec_test_secret
+      STRIPE_SECRET_KEY:    sk_test_dummy
+      RECAPTCHA_SECRET_KEY: ""
+      SECRET_KEY:           test-secret-key
+
+    steps:
+      # 1. Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the requested Python version
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      # 3. Install all project + test dependencies
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 4. Run the test suite with verbose output
+      - name: Run pytest
+        run: python -m pytest tests/ -v --tb=short

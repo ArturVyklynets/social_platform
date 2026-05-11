@@ -222,7 +222,6 @@ def update_application_status(
     db.commit()
     db.refresh(application)
 
-    # Fire calendar sync only on approval
     if body.status == "approved":
         calendar_service.add_volunteer_event(
             title=application.help_request.title,
@@ -310,7 +309,6 @@ def volunteer_for_request(
     if req.status != "open":
         raise HTTPException(status_code=400, detail="Цей запит вже закрито і не приймає нових заявок.")
 
-    # Normalise to naive UTC; also extract Kyiv local time for range validation
     scheduled = body.scheduled_at
     KYIV = timezone(timedelta(hours=3))
     if scheduled.tzinfo is not None:
@@ -358,7 +356,6 @@ def volunteer_for_request(
             detail="У вас вже є заявка в цей час. Мінімальний інтервал між записами — 1 година.",
         )
 
-    # Status starts as "pending" — calendar fires only after beneficiary approves
     application = models.RequestVolunteer(
         user_id=current_user.id,
         request_id=request_id,

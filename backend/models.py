@@ -83,7 +83,7 @@ class DonationTx(Base):
     donor_id = Column(Integer, ForeignKey("users.id"))
     request_id = Column(Integer, ForeignKey("help_requests.id"))
     amount = Column(Numeric(10, 2))
-    stripe_session_id = Column("liqpay_order_id", String)
+    stripe_session_id = Column(String)
     status = Column(String, default="pending")
     created_at = Column(DateTime, nullable=True, default=datetime.utcnow)
 

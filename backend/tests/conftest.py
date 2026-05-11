@@ -1,37 +1,13 @@
-"""
-Pytest configuration for the KindLink backend test suite.
-
-Strategy
---------
-`main.py` contains module-level code that connects to a live PostgreSQL
-instance and to Redis, so we never import it.  Instead we:
-
-  1. Inject mock versions of every external module (FastAPICache, Redis,
-     Cloudinary, Google Calendar, e-mail) into sys.modules *before* any
-     application code is imported.
-  2. Replace the `database` module with a thin fake that points at an
-     in-memory SQLite database backed by a StaticPool (single shared
-     connection) so every SQLAlchemy session sees the same data.
-  3. Build a minimal FastAPI test application that includes only the
-     routers under test (auth, payments, requests).
-  4. Expose pytest fixtures: client, db, test_user, blocked_user,
-     auth_headers, blocked_headers, test_request.
-"""
-
 import os
 import sys
 import types
 from unittest.mock import AsyncMock, MagicMock
 
-# ── 1. Test environment variables ─────────────────────────────────────────────
-# Must be set before any application module is imported.
-os.environ["RECAPTCHA_SECRET_KEY"]  = ""               # disables captcha check
+os.environ["RECAPTCHA_SECRET_KEY"]  = ""
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test_secret"
 os.environ["STRIPE_SECRET_KEY"]     = "sk_test_dummy"
 os.environ["SECRET_KEY"]            = "test-secret-key"
 
-# ── 2. Mock FastAPICache (fastapi_cache + sub-modules) ────────────────────────
-# @cache becomes a transparent no-op; FastAPICache.clear() is an AsyncMock.
 _fc_cls = MagicMock()
 _fc_cls.clear      = AsyncMock(return_value=None)
 _fc_cls.get_prefix = MagicMock(return_value="test")
@@ -49,13 +25,11 @@ sys.modules["fastapi_cache"]                = _fc_mod
 sys.modules["fastapi_cache.decorator"]      = _fcd_mod
 sys.modules["fastapi_cache.backends.redis"] = _fcr_mod
 
-# ── 3. Mock Cloudinary ────────────────────────────────────────────────────────
 _cloud_mod = types.ModuleType("cloudinary_config")
 _cloud_mod.upload_image = AsyncMock(return_value="http://cdn.test/img.jpg")
 _cloud_mod.delete_image = AsyncMock(return_value=None)
 sys.modules["cloudinary_config"] = _cloud_mod
 
-# ── 4. Mock Google Calendar service ──────────────────────────────────────────
 _cal_mod = types.ModuleType("services.calendar_service")
 _cal_mod.add_event    = MagicMock(return_value=None)
 _cal_mod.delete_event = MagicMock(return_value=None)
@@ -66,17 +40,10 @@ _svc_mod.calendar_service = _cal_mod
 sys.modules["services"]                  = _svc_mod
 sys.modules["services.calendar_service"] = _cal_mod
 
-# ── 5. Mock e-mail config ─────────────────────────────────────────────────────
 _email_mod = types.ModuleType("email_config")
 _email_mod.send_reset_email = AsyncMock(return_value=None)
 sys.modules["email_config"] = _email_mod
 
-# ── 6. Inject a test `database` module ───────────────────────────────────────
-# database.py has a hardcoded PostgreSQL URL, so we replace the whole module
-# before any router imports it.
-#
-# LOCAL  → SQLite in-memory  (fast, no external deps)
-# CI/CD  → PostgreSQL        (set TEST_DATABASE_URL env var in the workflow)
 import pytest  # noqa: E402 – delayed until after env setup
 from sqlalchemy import create_engine                       # noqa: E402
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: E402
@@ -88,10 +55,9 @@ if _DB_URL.startswith("sqlite"):
     _engine = create_engine(
         _DB_URL,
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool,   # all sessions share one in-memory connection
+        poolclass=StaticPool,
     )
 else:
-    # PostgreSQL in CI — use default connection pool
     _engine = create_engine(_DB_URL)
 
 _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
@@ -104,15 +70,12 @@ _db_mod.SessionLocal = _SessionLocal
 _db_mod.Base         = _Base
 sys.modules["database"] = _db_mod
 
-# ── 7. Import application code (now uses the mocked modules above) ────────────
 import models      # noqa: E402
 import security    # noqa: E402
 from dependencies import get_db  # noqa: E402
 
-# Create all ORM-defined tables in the in-memory SQLite DB.
 _Base.metadata.create_all(bind=_engine)
 
-# ── 8. Build a minimal test FastAPI application ───────────────────────────────
 from fastapi import FastAPI                    # noqa: E402
 from fastapi.testclient import TestClient      # noqa: E402
 from routers import auth      as _auth_router  # noqa: E402
@@ -136,8 +99,6 @@ def _override_get_db():
 
 _test_app.dependency_overrides[get_db] = _override_get_db
 
-
-# ── Fixtures ───────────────────────────────────────────────────────────────────
 
 @pytest.fixture(autouse=True)
 def isolate_db():

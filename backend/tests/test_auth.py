@@ -1,17 +1,3 @@
-"""
-Authentication tests.
-
-Covers:
-  - Successful user registration (captcha disabled via empty RECAPTCHA_SECRET_KEY)
-  - reCAPTCHA bypass when secret key is absent
-  - Duplicate-email rejection
-  - Default role applied when role is not specified
-  - Successful login returning a JWT token
-  - JWT payload contains the correct role field
-  - Login failure on wrong password / unknown email
-  - 403 Forbidden for a blocked user on any protected endpoint
-"""
-
 import pytest
 from fastapi.testclient import TestClient
 

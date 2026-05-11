@@ -1,22 +1,8 @@
-"""
-Google Calendar integration service.
-
-Current state: structured simulation that logs events and returns a response
-matching the shape of the real Google Calendar API.
-
-To wire up real OAuth2:
-  1. pip install google-auth google-auth-oauthlib google-api-python-client
-  2. Create OAuth2 credentials in Google Cloud Console (Calendar API scope).
-  3. Store per-user access_token / refresh_token in the DB (e.g. a UserToken model).
-  4. Replace the placeholder block below with the commented-out real implementation.
-"""
-
 import logging
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-# Duration of a volunteer visit in minutes (used for the calendar event end time)
 DEFAULT_VISIT_DURATION_MINUTES = 60
 
 

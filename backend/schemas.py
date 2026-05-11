@@ -47,7 +47,6 @@ class HelpRequestResponse(HelpRequestBase):
     class Config:
         from_attributes = True
 
-# --- СХЕМИ ДЛЯ ВОЛОНТЕРІВ (БРОНЮВАННЯ) ---
 class BookingCreate(BaseModel):
     request_id: int
     scheduled_time: datetime

@@ -1,17 +1,3 @@
-"""
-Financial and HelpRequest tests.
-
-Covers:
-  - GET /api/requests/ is public and returns a list
-  - Creating a HelpRequest requires a valid JWT (401 without token)
-  - Only Beneficiaries can create HelpRequests (403 for other roles)
-  - Beneficiary with valid token can create a HelpRequest (201)
-  - Stripe webhook: 503 when STRIPE_WEBHOOK_SECRET is not configured
-  - Stripe webhook: 400 when the signature is invalid
-  - Stripe webhook: checkout.session.completed increments collected_amount
-    and creates a DonationTx record in the database
-"""
-
 import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
@@ -136,8 +122,6 @@ class TestStripeWebhook:
         A webhook request that fails Stripe signature verification must
         return HTTP 400 Bad Request.
         """
-        # stripe.Webhook.construct_event raises SignatureVerificationError
-        # for a mismatched signature, which our handler converts to 400.
         import stripe
 
         with patch(
@@ -167,7 +151,6 @@ class TestStripeWebhook:
         AMOUNT_CENTS = 50_000          # 500.00 UAH
         AMOUNT_UAH   = 500.0
 
-        # Build a realistic mock of the Stripe event object.
         mock_metadata = MagicMock()
         mock_metadata._data = {
             "request_id": str(test_request.id),
@@ -190,12 +173,9 @@ class TestStripeWebhook:
                 headers={"stripe-signature": self._DUMMY_SIG},
             )
 
-        # ── 1. HTTP response ────────────────────────────────────────────────
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
-        # ── 2. collected_amount incremented ────────────────────────────────
-        # expire() forces SQLAlchemy to re-fetch from the DB on next access.
         db.expire(test_request)
         updated_request = (
             db.query(models.HelpRequest)
@@ -204,7 +184,6 @@ class TestStripeWebhook:
         )
         assert updated_request.collected_amount == pytest.approx(AMOUNT_UAH, abs=0.01)
 
-        # ── 3. DonationTx created ──────────────────────────────────────────
         donation = (
             db.query(models.DonationTx)
             .filter_by(donor_id=test_user.id, request_id=test_request.id)

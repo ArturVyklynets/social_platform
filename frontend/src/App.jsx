@@ -39,7 +39,6 @@ export default function App() {
     setCurrentView('landing');
   };
 
-  // Save Google OAuth token from URL on first render
   useEffect(() => {
     const urlToken = new URLSearchParams(window.location.search).get('token');
     if (urlToken) {
@@ -48,7 +47,6 @@ export default function App() {
     }
   }, []);
 
-  // Show payment result toast after Stripe redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
@@ -61,7 +59,6 @@ export default function App() {
     }
   }, []);
 
-  // After every login, check if the user still needs to pick a role
   useEffect(() => {
     if (!isLoggedIn) return;
     const token = localStorage.getItem('token');
@@ -75,8 +72,6 @@ export default function App() {
         if (res.data.role === 'pending') setShowRoleModal(true);
       })
       .catch((err) => {
-        // 403 "blocked" — keep the session, banner will show from is_blocked flag.
-        // Any other error (401, network) — log out normally.
         if (err.response?.status !== 403) handleLogout();
       });
   }, [isLoggedIn]);

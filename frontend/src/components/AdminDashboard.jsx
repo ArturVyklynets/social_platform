@@ -54,7 +54,7 @@ function UsersTab() {
     setLoading(true)
     axios
       .get(`${API}/api/admin/users`, { headers: authHeader() })
-      .then((r) => setUsers(r.data))
+      .then((r) => setUsers(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error("Не вдалося завантажити користувачів."))
       .finally(() => setLoading(false))
   }, [])
@@ -190,7 +190,7 @@ function RequestsTab() {
     setLoading(true)
     axios
       .get(`${API}/api/admin/requests`, { headers: authHeader() })
-      .then((r) => setRequests(r.data))
+      .then((r) => setRequests(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error("Не вдалося завантажити запити."))
       .finally(() => setLoading(false))
   }, [])
@@ -481,7 +481,7 @@ function TicketsTab() {
     setLoading(true)
     axios
       .get(`${API}/api/support/tickets`, { headers: authHeader() })
-      .then((r) => setTickets(r.data))
+      .then((r) => setTickets(Array.isArray(r.data) ? r.data : []))
       .catch(() => toast.error("Не вдалося завантажити звернення."))
       .finally(() => setLoading(false))
   }, [])

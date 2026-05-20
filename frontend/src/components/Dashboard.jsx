@@ -26,7 +26,7 @@ export default function Dashboard({ currentUser }) {
   const fetchRequests = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/requests/`)
-      setRequests(response.data)
+      setRequests(Array.isArray(response.data) ? response.data : [])
     } catch (error) {
       console.error("Помилка при завантаженні запитів:", error)
     } finally {

@@ -73,7 +73,7 @@ function VolunteeringTab() {
       .get(`${API}/api/requests/my-applications`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((r) => setApps(r.data))
+      .then((r) => setApps(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -232,7 +232,7 @@ function MyRequestsTab() {
     setLoading(true)
     axios
       .get(`${API}/api/requests/my-requests`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => setReqs(r.data))
+      .then((r) => setReqs(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -389,7 +389,7 @@ function IncomingApplicationsTab() {
     setLoading(true)
     axios
       .get(`${API}/api/requests/my-incoming-applications`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => setApps(r.data))
+      .then((r) => setApps(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -576,7 +576,7 @@ function DonationsTab() {
       .get(`${API}/api/payments/my-donations`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((r) => setDonations(r.data))
+      .then((r) => setDonations(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -841,7 +841,7 @@ function ReviewsTab({ userId }) {
     if (!userId) return
     axios
       .get(`${API}/api/users/${userId}/reviews`)
-      .then((r) => setReviews(r.data))
+      .then((r) => setReviews(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [userId])
@@ -905,7 +905,7 @@ function ScheduleTab() {
     if (!token) return
     axios
       .get(`${API}/api/requests/calendar`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => setSlots(r.data))
+      .then(r => setSlots(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])

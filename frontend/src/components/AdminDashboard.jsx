@@ -6,7 +6,7 @@ import AdminUserProfileModal from "./AdminUserProfileModal"
 import AdminRequestDetailModal from "./AdminRequestDetailModal"
 import { parseUTC } from "../utils"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 const ROLES = ["Бенефіціар", "Волонтер", "Донор", "Адмін"]
 

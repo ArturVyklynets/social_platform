@@ -31,7 +31,7 @@ export default function DonateModal({ isOpen, onClose, request }) {
     try {
       const token = localStorage.getItem("token")
       const { data } = await axios.post(
-        "http://localhost:8000/api/payments/create-checkout-session",
+        `${import.meta.env.VITE_API_URL}/api/payments/create-checkout-session`,
         { request_id: request.id, amount: numericAmount },
         { headers: { Authorization: `Bearer ${token}` } }
       )

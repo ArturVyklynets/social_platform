@@ -3,7 +3,7 @@ import axios from "axios"
 import { X, CheckCircle, ImageIcon } from "lucide-react"
 import { parseUTC } from "../utils"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 export default function ReportViewModal({ isOpen, onClose, requestId, requestTitle }) {
   const [report, setReport]   = useState(null)

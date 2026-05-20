@@ -55,7 +55,7 @@ function buildSchedCells(year, month) {
 const inputCls =
   "w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-600"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 function VolunteeringTab() {
   const [apps, setApps]           = useState([])

@@ -3,7 +3,7 @@ import axios from "axios"
 import toast from "react-hot-toast"
 import { X, Star } from "lucide-react"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 const LABELS = ["", "Дуже погано", "Погано", "Нормально", "Добре", "Відмінно"]
 

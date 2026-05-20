@@ -53,7 +53,7 @@ export default function AuthModals({ isOpen, type, onClose, onSuccess }) {
 
   const handleGoogleLogin = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/auth/google/login")
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/google/login`)
       window.location.href = res.data.url
     } catch {
       setError("Не вдалося підключитися до Google. Спробуйте ще раз.")
@@ -70,7 +70,7 @@ export default function AuthModals({ isOpen, type, onClose, onSuccess }) {
         const formData = new URLSearchParams()
         formData.append("username", email)
         formData.append("password", password)
-        const res = await axios.post("http://localhost:8000/api/auth/login", formData)
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, formData)
         localStorage.setItem("token", res.data.access_token)
         onSuccess()
         onClose()
@@ -80,7 +80,7 @@ export default function AuthModals({ isOpen, type, onClose, onSuccess }) {
           setIsLoading(false)
           return
         }
-        await axios.post("http://localhost:8000/api/auth/register", {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
           email, password, role, captcha_token: captchaToken,
         })
         toast.success("Акаунт створено! Будь ласка, увійдіть.")
@@ -102,7 +102,7 @@ export default function AuthModals({ isOpen, type, onClose, onSuccess }) {
     setError("")
     setIsLoading(true)
     try {
-      await axios.post("http://localhost:8000/api/auth/forgot-password", { email: forgotEmail })
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, { email: forgotEmail })
       setForgotSent(true)
     } catch {
       setError("Щось пішло не так. Спробуйте ще раз.")

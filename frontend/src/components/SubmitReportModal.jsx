@@ -3,7 +3,7 @@ import axios from "axios"
 import toast from "react-hot-toast"
 import { X, Upload, Camera, FileImage } from "lucide-react"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 export default function SubmitReportModal({ isOpen, onClose, requestId, requestTitle }) {
   const [file, setFile]         = useState(null)

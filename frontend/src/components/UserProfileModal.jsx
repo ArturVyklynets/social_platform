@@ -3,7 +3,7 @@ import axios from "axios"
 import { X, Star, User as UserIcon, Heart, Shield, DollarSign } from "lucide-react"
 import { parseUTC } from "../utils"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 const ROLE_CONFIG = {
   "Волонтер":   { label: "Волонтер",   cls: "bg-green-100 text-green-700"  },

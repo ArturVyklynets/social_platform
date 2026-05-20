@@ -44,7 +44,7 @@ export default function RoleSelectionModal({ onRoleSet }) {
     try {
       const token = localStorage.getItem("token")
       const res = await axios.patch(
-        "http://localhost:8000/api/users/me/role",
+        `${import.meta.env.VITE_API_URL}/api/users/me/role`,
         { role: selected },
         { headers: { Authorization: `Bearer ${token}` } }
       )

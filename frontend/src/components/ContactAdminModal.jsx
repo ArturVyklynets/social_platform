@@ -3,7 +3,7 @@ import axios from "axios"
 import toast from "react-hot-toast"
 import { X, MessageSquare, FileText, AlignLeft } from "lucide-react"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 const INITIAL = { title: "", body: "" }
 
 export default function ContactAdminModal({ isOpen, onClose }) {

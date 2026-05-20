@@ -10,7 +10,7 @@ import DonateModal from "./DonateModal"
 import UserProfileModal from "./UserProfileModal"
 import { parseUTC } from "../utils"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 const CATEGORY_CONFIG = {
   urgent:    { label: "Терміново",  icon: Clock,         cls: "bg-red-100 text-red-700" },

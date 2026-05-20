@@ -4,7 +4,7 @@ import toast from "react-hot-toast"
 import { X, Tag, User, CreditCard, Heart, Banknote, CheckCircle, Camera, ImageIcon } from "lucide-react"
 import { parseUTC } from "../utils"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 const CATEGORY_CLS = {
   urgent:    "bg-red-100 text-red-700",

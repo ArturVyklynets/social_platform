@@ -64,7 +64,7 @@ export default function App() {
     const token = localStorage.getItem('token');
     if (!token) return;
     axios
-      .get('http://localhost:8000/api/users/me', {
+      .get(`${import.meta.env.VITE_API_URL}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

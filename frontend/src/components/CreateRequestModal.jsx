@@ -80,7 +80,7 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
 
       // Step 1: create the request with JSON
       const { data: newRequest } = await axios.post(
-        "http://localhost:8000/api/requests/",
+        `${import.meta.env.VITE_API_URL}/api/requests/`,
         {
           title: form.title,
           description: form.description,
@@ -100,7 +100,7 @@ export default function CreateRequestModal({ isOpen, onClose, onSuccess }) {
         const formData = new FormData()
         formData.append("file", imageFile)
         await axios.post(
-          `http://localhost:8000/api/requests/${newRequest.id}/image`,
+          `${import.meta.env.VITE_API_URL}/api/requests/${newRequest.id}/image`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )

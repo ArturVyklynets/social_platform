@@ -25,7 +25,7 @@ export default function Dashboard({ currentUser }) {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/requests/")
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/requests/`)
       setRequests(response.data)
     } catch (error) {
       console.error("Помилка при завантаженні запитів:", error)
@@ -106,7 +106,7 @@ export default function Dashboard({ currentUser }) {
                   {request.image_url ? (
                     <div className="mx-4 mt-4 overflow-hidden rounded-xl">
                       <img
-                        src={request.image_url.startsWith("/") ? `http://localhost:8000${request.image_url}` : request.image_url}
+                        src={request.image_url.startsWith("/") ? `${import.meta.env.VITE_API_URL}${request.image_url}` : request.image_url}
                         alt={request.title}
                         className="aspect-video w-full object-cover"
                       />

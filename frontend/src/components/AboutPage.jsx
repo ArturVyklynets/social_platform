@@ -3,7 +3,7 @@ import axios from "axios"
 import { Heart, Users, Target, Shield, Globe, Award, Lightbulb, HandHeart, Mail, MapPin, Phone } from "lucide-react"
 import toast from "react-hot-toast"
 
-const API = "http://localhost:8000"
+const API = import.meta.env.VITE_API_URL
 
 export default function AboutPage({ onGetStarted }) {
   const [platformStats, setPlatformStats] = useState(null)

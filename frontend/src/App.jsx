@@ -137,7 +137,7 @@ export default function App() {
       />
 
       {showRoleModal && (
-        <RoleSelectionModal onRoleSet={() => setShowRoleModal(false)} />
+        <RoleSelectionModal onRoleSet={(updatedUser) => { setShowRoleModal(false); setCurrentUser(updatedUser); }} />
       )}
 
       <Toaster

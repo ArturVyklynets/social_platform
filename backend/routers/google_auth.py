@@ -12,8 +12,8 @@ from dependencies import get_db
 
 router = APIRouter(prefix="/api/auth", tags=["Google OAuth"])
 
-GOOGLE_REDIRECT_URI  = "http://localhost:8000/api/auth/google/callback"
-FRONTEND_URL         = "http://localhost:5173"
+GOOGLE_REDIRECT_URI  = os.getenv("BACKEND_URL", "http://localhost:8000") + "/api/auth/google/callback"
+FRONTEND_URL         = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 GOOGLE_AUTH_URL     = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL    = "https://oauth2.googleapis.com/token"

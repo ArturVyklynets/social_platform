@@ -45,8 +45,8 @@ def create_checkout_session(
     if not req:
         raise HTTPException(status_code=404, detail="Запит не знайдено.")
 
-    if body.amount < 1:
-        raise HTTPException(status_code=400, detail="Сума повинна бути не менше ₴1.")
+    if body.amount < 25:
+        raise HTTPException(status_code=400, detail="Сума повинна бути не менше ₴25.")
 
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 

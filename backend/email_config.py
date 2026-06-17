@@ -1,20 +1,10 @@
 import os
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-
-def get_mail_config() -> ConnectionConfig:
-    return ConnectionConfig(
-        MAIL_USERNAME=os.getenv("SMTP_USER", ""),
-        MAIL_PASSWORD=os.getenv("SMTP_PASSWORD", ""),
-        MAIL_FROM=os.getenv("SMTP_USER", ""),
-        MAIL_PORT=int(os.getenv("SMTP_PORT", "587")),
-        MAIL_SERVER=os.getenv("SMTP_HOST", "smtp.gmail.com"),
-        MAIL_FROM_NAME="KindLink",
-        MAIL_STARTTLS=True,
-        MAIL_SSL_TLS=False,
-        USE_CREDENTIALS=True,
-    )
+import resend
 
 async def send_donation_email(to_email: str, amount_uah: float, request_title: str) -> None:
+    resend.api_key = os.getenv("RESEND_API_KEY", "")
+    if not resend.api_key:
+        return
     html = f"""
     <!DOCTYPE html>
     <html lang="uk">
@@ -70,17 +60,18 @@ async def send_donation_email(to_email: str, amount_uah: float, request_title: s
     </body>
     </html>
     """
-    message = MessageSchema(
-        subject="Дякуємо за пожертву — KindLink",
-        recipients=[to_email],
-        body=html,
-        subtype=MessageType.html,
-    )
-    fm = FastMail(get_mail_config())
-    await fm.send_message(message)
+    resend.Emails.send({
+        "from": "KindLink <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": "Дякуємо за пожертву — KindLink",
+        "html": html,
+    })
 
 
 async def send_reset_email(to_email: str, reset_link: str) -> None:
+    resend.api_key = os.getenv("RESEND_API_KEY", "")
+    if not resend.api_key:
+        return
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -168,11 +159,9 @@ async def send_reset_email(to_email: str, reset_link: str) -> None:
     </body>
     </html>
     """
-    message = MessageSchema(
-        subject="Reset your KindLink password",
-        recipients=[to_email],
-        body=html,
-        subtype=MessageType.html,
-    )
-    fm = FastMail(get_mail_config())
-    await fm.send_message(message)
+    resend.Emails.send({
+        "from": "KindLink <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": "Reset your KindLink password",
+        "html": html,
+    })

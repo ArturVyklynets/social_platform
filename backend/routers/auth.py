@@ -32,9 +32,8 @@ def verify_captcha(token: str) -> bool:
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    if user.captcha_token:
-        if not verify_captcha(user.captcha_token):
-            raise HTTPException(status_code=400, detail="Invalid captcha. Please try again.")
+    if not verify_captcha(user.captcha_token or ""):
+        raise HTTPException(status_code=400, detail="Invalid captcha. Please try again.")
 
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:

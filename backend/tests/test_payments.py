@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi.testclient import TestClient
 
 import models
@@ -150,6 +150,7 @@ class TestStripeWebhook:
         """
         AMOUNT_CENTS = 50_000          # 500.00 UAH
         AMOUNT_UAH   = 500.0
+        NET_UAH      = round(AMOUNT_UAH * 0.975, 2)   # після 2.5% комісії = 487.5
 
         mock_metadata = MagicMock()
         mock_metadata._data = {
@@ -182,7 +183,7 @@ class TestStripeWebhook:
             .filter(models.HelpRequest.id == test_request.id)
             .first()
         )
-        assert updated_request.collected_amount == pytest.approx(AMOUNT_UAH, abs=0.01)
+        assert updated_request.collected_amount == pytest.approx(NET_UAH, abs=0.01)
 
         donation = (
             db.query(models.DonationTx)
@@ -258,3 +259,41 @@ class TestStripeWebhook:
             .first()
         )
         assert unchanged.collected_amount == 0.0
+
+    def test_webhook_emits_payment_success_event(
+        self, client: TestClient, test_user, test_request
+    ):
+        """
+        Після успішної обробки checkout.session.completed вебхук повинен
+        викликати emit("payment_success") з email донора, сумою та назвою запиту.
+        Перевіряє коректну інтеграцію Observer-патерну.
+        """
+        mock_metadata = MagicMock()
+        mock_metadata._data = {
+            "request_id": str(test_request.id),
+            "user_id":    str(test_user.id),
+        }
+
+        mock_session = MagicMock()
+        mock_session.metadata     = mock_metadata
+        mock_session.amount_total = 20_000   # 200.00 UAH
+        mock_session.id           = "cs_test_observer"
+
+        mock_event      = MagicMock()
+        mock_event.type = "checkout.session.completed"
+        mock_event.data.object = mock_session
+
+        with patch("stripe.Webhook.construct_event", return_value=mock_event), \
+             patch("routers.payments.emit", new_callable=AsyncMock) as mock_emit:
+            client.post(
+                self._WEBHOOK_URL,
+                content=self._DUMMY_BODY,
+                headers={"stripe-signature": self._DUMMY_SIG},
+            )
+
+        mock_emit.assert_called_once_with(
+            "payment_success",
+            donor_email=test_user.email,
+            amount_uah=200.0,
+            request_title=test_request.title,
+        )

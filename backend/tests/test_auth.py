@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 
 import security
@@ -23,7 +22,7 @@ class TestRegistration:
     def test_register_captcha_bypassed_when_secret_missing(self, client: TestClient):
         """
         When RECAPTCHA_SECRET_KEY is empty (as in tests) verify_captcha()
-        returns True immediately, so any captcha_token value is accepted.
+        returns True immediately — captcha is mandatory but always passes in test env.
         """
         response = client.post("/api/auth/register", json={
             "email":         "captcha@test.com",

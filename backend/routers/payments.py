@@ -9,12 +9,15 @@ from sqlalchemy.orm import Session, joinedload
 
 import models
 from dependencies import get_current_user, get_db
+from events import emit
 
 log = logging.getLogger(__name__)
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 router = APIRouter(prefix="/api/payments", tags=["Payments"])
+
+PLATFORM_FEE_RATE = 0.025  # 2.5% операційна комісія платформи
 
 
 class CheckoutRequest(BaseModel):
@@ -102,9 +105,11 @@ async def stripe_webhook(
             if not request_id or amount_uah <= 0:
                 return {"status": "ok"}
 
+            net_amount = round(amount_uah * (1 - PLATFORM_FEE_RATE), 2)
+
             req = db.query(models.HelpRequest).filter(models.HelpRequest.id == request_id).first()
             if req:
-                req.collected_amount = round((req.collected_amount or 0.0) + amount_uah, 2)
+                req.collected_amount = round((req.collected_amount or 0.0) + net_amount, 2)
 
                 if user_id:
                     db.add(models.DonationTx(
@@ -117,6 +122,18 @@ async def stripe_webhook(
                     ))
 
                 db.commit()
+
+                donor_email = None
+                if user_id:
+                    donor = db.query(models.User).filter(models.User.id == user_id).first()
+                    donor_email = donor.email if donor else None
+
+                await emit(
+                    "payment_success",
+                    donor_email=donor_email,
+                    amount_uah=amount_uah,
+                    request_title=req.title if req else "",
+                )
         except Exception as exc:
             db.rollback()
             log.error("checkout.session.completed processing failed: %s", exc, exc_info=True)

@@ -18,6 +18,8 @@ Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    from handlers import register as _register_handlers
+    _register_handlers()
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
     redis = aioredis.from_url(redis_url)
     FastAPICache.init(RedisBackend(redis), prefix="kindlink-cache")
